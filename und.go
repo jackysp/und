@@ -2,31 +2,40 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"time"
 )
 
 var (
-	nmKey      = flag.String("key", "12345", " To be replaced by your unique API key. Visit the API Manager page within your account for details.")
-	nmDomain   = flag.String("domain", "namesilo.com", "The domain associated with the DNS resource record to modify")
-	nmHost     = flag.String("host", "www", "The hostname to use (there is no need to include the \".DOMAIN\")")
-	nmInterval = flag.Duration("interval", 300*time.Second, "The seconds of updating interval")
+	fVersion  = flag.Bool("v", false, "print version information and exit")
+	fKey      = flag.String("k", "12345", " To be replaced by your unique API key. Visit the API Manager page within your account for details.")
+	fDomain   = flag.String("d", "namesilo.com", "The domain associated with the DNS resource record to modify")
+	fHost     = flag.String("h", "www", "The hostname to use (there is no need to include the \".DOMAIN\")")
+	fInterval = flag.Duration("i", 300*time.Second, "The seconds of updating interval")
 )
+
+var version = "None"
 
 func main() {
 	flag.Parse()
+	if *fVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 	updateDNSLoop()
 }
 
 func updateDNSLoop() {
-	tick := time.NewTicker(*nmInterval)
+	tick := time.NewTicker(*fInterval)
 	defer tick.Stop()
 	for {
 		select {
 		case <-tick.C:
-			err := doUpdateDNS(*nmDomain, *nmHost, *nmKey)
+			err := doUpdateDNS(*fDomain, *fHost, *fKey)
 			if err != nil {
-				log.Printf("[%v] update DNS record failed, domain:%s, host:%s, error:%v", time.Now().Format(time.RFC3339), *nmDomain, *nmHost, err)
+				log.Printf("[%v] update DNS record failed, domain:%s, host:%s, error:%v", time.Now().Format(time.RFC3339), *fDomain, *fHost, err)
 			}
 		}
 	}
