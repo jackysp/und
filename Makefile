@@ -17,15 +17,11 @@ darwin-amd64:
 windows-amd64:
 	GOARCH=amd64 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe
 
-check: errcheck golint
+check:
 	go mod tidy
 	gofmt -s -l -w .
-	errcheck -blank
 	golint
 	go vet
-
-errcheck:
-	go get -u github.com/kisielk/errcheck
 
 golint:
 	go get -u golang.org/x/lint/golint
