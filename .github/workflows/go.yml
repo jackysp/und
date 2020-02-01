@@ -25,6 +25,4 @@ jobs:
         fi
 
     - name: Build
-      run: |
-        make check
-        make
+      run: make
