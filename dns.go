@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -17,16 +16,19 @@ const (
 	updateDNSFormat = prefixAPI + "dnsUpdateRecord" + fixedFormat + "&rrid=%s&rrhost=%s&rrvalue=%s&rrttl=7207"
 )
 
+// Request is used to map to the request, IP is the public IP of the client.
 type Request struct {
 	Operation string `xml:"operation"`
 	IP        string `xml:"ip"`
 }
 
+// Status is used to map the response status.
 type Status struct {
 	Code   int    `xml:"code"`
 	Detail string `xml:"detail"`
 }
 
+// DNSRecord is used to map the DNS record.
 type DNSRecord struct {
 	RecordID string `xml:"record_id"`
 	Type     string `xml:"type"`
@@ -36,22 +38,26 @@ type DNSRecord struct {
 	Distance int    `xml:"distance"`
 }
 
+// ListReply is used to map the reply of list API.
 type ListReply struct {
 	Status
 	DNSRecords []DNSRecord `xml:"resource_record"`
 }
 
+// ListResp is used to map the whole response of list API.
 type ListResp struct {
 	XMLName   xml.Name  `xml:"namesilo"`
 	Request   Request   `xml:"request"`
 	ListReply ListReply `xml:"reply"`
 }
 
+// UpdateReply is used to map the reply of update API.
 type UpdateReply struct {
 	Status
 	RecordID string `xml:"record_id"`
 }
 
+// UpdateResp is used to map the whole response of update API.
 type UpdateResp struct {
 	XMLName     xml.Name    `xml:"namesilo"`
 	Request     Request     `xml:"request"`
@@ -74,7 +80,7 @@ func sendRequest(url string) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("resp.StatusCode is not OK, code: %d, body: %s", resp.StatusCode, body))
+		return nil, fmt.Errorf("resp.StatusCode is not OK, code: %d, body: %s", resp.StatusCode, body)
 	}
 	return body, nil
 }
@@ -92,7 +98,7 @@ func dnsList(domain, key string) (*ListResp, error) {
 	}
 	log.Printf("[%v] list: %v", time.Now().Format(time.RFC3339), resp)
 	if resp.ListReply.Code != 300 {
-		return nil, errors.New(fmt.Sprintf("wrong response, code: %d, detail:%s", resp.ListReply.Code, resp.ListReply.Detail))
+		return nil, fmt.Errorf("wrong response, code: %d, detail:%s", resp.ListReply.Code, resp.ListReply.Detail)
 	}
 	return resp, nil
 }
